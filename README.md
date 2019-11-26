@@ -16,4 +16,5 @@ Command prompt for navigating the Windows registry
 ###### Move with absolute path
 
 `ls R:\<path>`
+
 `cd R:\<path>`
