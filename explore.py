@@ -1,4 +1,4 @@
-from _winreg import HKEY_LOCAL_MACHINE,HKEY_USERS,OpenKey,EnumKey,EnumValue,KEY_READ,HKEY_CURRENT_USER,KEY_WOW64_32KEY,KEY_WOW64_64KEY,QueryInfoKey,QueryValueEx,ConnectRegistry
+from winreg import HKEY_LOCAL_MACHINE,HKEY_USERS,OpenKey,EnumKey,EnumValue,KEY_READ,HKEY_CURRENT_USER,KEY_WOW64_32KEY,KEY_WOW64_64KEY,QueryInfoKey,QueryValueEx,ConnectRegistry
 from tabulate import tabulate
 tabulate.PRESERVE_WHITESPACE = True
 import operator
@@ -16,7 +16,8 @@ def to_tabulate(data,vertical=False):
             if vertical:
                 headers = ["Key","Value"]            
                 for k,v in each.items():                    
-                    data_list.append([str(k),str(v).decode("ascii","ignore")])
+                    data_list.append([str(k),str(v)])
+
                 data_list.append(["--------------------------------------------","--------------------------------------------"])
             else:        
                 if not headers: # set headers on the first record
@@ -25,7 +26,7 @@ def to_tabulate(data,vertical=False):
                 for col in headers:
                     e = each.get(col,"missing keys")
                     
-                    value = str(e).decode("ascii","ignore")                    
+                    value = str(e)                   
                     temp.append(value)
                 if temp:
                     data_list.append(temp)         
@@ -72,25 +73,7 @@ def filter_fields(data,filter=[],exc=[],inc=[],case_insen=True):
     return dataset
     
 class Registry_Read():
-    '''
-    #obj = Registry_Read(HKEY_LOCAL_MACHINE)
-    
-    #------Get all data
-    #keypath = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\\'
-    #obj.get_all_values(keypath)
 
-    #------Get keys
-    #keypath = r'System\\CurrentControlSet\\Services\\'
-    #print obj.get_subkeys(keypath)
-
-    #------Get values
-    #keypath = r'System\\CurrentControlSet\\Services\\test9'
-    #print obj.get_values(keypath)
-    
-    #------Create Registry Attribute
-    #keypath = r'System\\CurrentControlSet\\Services\\test9'
-    obj.createRegistryParameter(keypath,"key","value")
-    '''
     def __init__(self, const):
         HIVE = {
             "hklm":HKEY_LOCAL_MACHINE,
@@ -120,7 +103,7 @@ class Registry_Read():
             ob = OpenKey(self.const, keypath, 0, KEY_READ)
             keys = self.get_subattribs('key', ob)
         except Exception as e:
-            print "Exception occured :- {}, key path :- {}".format(e, keypath)
+            print("Exception occured :- {}, key path :- {}".format(e, keypath))
         return keys
 
     def get_values(self, keypath):
@@ -131,7 +114,7 @@ class Registry_Read():
                 for each in v:
                     dict[each[0]] = each[1]
         except Exception as e:
-            print "Exception occured :- {}, key path :- {}".format(e, keypath)
+            print("Exception occured :- {}, key path :- {}".format(e, keypath))
         return dict
 
     def get_subattribs(self, attrib_name, ob):
@@ -176,39 +159,39 @@ def navigate_reg(cwd=None,hive="hklm"):
 
     while True:
         prompt = "cwd: R:\%s>" % (cwd)
-        input = raw_input("%s: " % prompt)
-        input = input.split()
-        if input:
+        start = input("{}: ".format(prompt))
+        input_by_user = start.split()
+        if input_by_user:
             path,key = os.path.split(cwd)
             data = obj.get_subkeys(cwd)
-            if input[0] in ("ls","dir"):
+            if input_by_user[0] in ("ls","dir"):
                 if isinstance(data,list) and not data: # reached the end of a key
-                    print "\n"
-                    print "Displaying values of the key: %s" % (key)
-                    print to_tabulate(obj.get_values(cwd),vertical=True) 
-                    print "\n"
-                elif len(input) > 1: 
-                    path = input[1]
+                    print("\n")
+                    print("Displaying values of the key: %s" % (key))
+                    print(to_tabulate(obj.get_values(cwd),vertical=True) )
+                    print("\n")
+                elif len(input_by_user) > 1: 
+                    path = input_by_user[1]
                     if os.path.isabs(path):
                         drive,path = os.path.splitdrive(path)
                         ls = path.lstrip("\\")
-                        print ls
+                        print(ls)
                         contents = obj.list_contents(ls)
                         if contents:
                             k,v = contents
                             if k == "value":
                                 v=filter_fields(v)
-                                print to_tabulate(v,vertical=True)
+                                print(to_tabulate(v,vertical=True))
                             else:
-                                print contents
+                                print(contents)
                         else:
-                            print "Registry path does not exist!"                            
+                            print("Registry path does not exist!")                          
                     
                 else:
-                    print data        
-            elif input[0] == "cd":
-                    if len(input) > 1:
-                        path = input[1]
+                    print(data)        
+            elif input_by_user[0] == "cd":
+                    if len(input_by_user) > 1:
+                        path = input_by_user[1]
                         if path == "..":
                             base = os.path.dirname(cwd)
                             cwd = base
@@ -219,12 +202,12 @@ def navigate_reg(cwd=None,hive="hklm"):
                                 path = path.lstrip("\\")
                             if obj.key_exist(path): 
                                 cwd = path                        
-                                print "Changed registry path to: %s" % cwd
+                                print("Changed registry path to: %s" % cwd)
                             else:
-                                print "Registry path does not exist!"
+                                print("Registry path does not exist!")
             else:
                 pass
-        #elif input[0]
+        #elif input_by_user[0]
                                      
         
 navigate_reg()    
